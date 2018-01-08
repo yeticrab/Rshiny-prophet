@@ -1,10 +1,11 @@
-'''
-  Roger C Gill, 2018-01-02
-  Description : Reads a delimited text file
-  Usage       : Place the following code snippets within the dashboard
-    1 : import_file should be placed within a tabItem in a tab
-	2 : import_file_server should be placed within the server.UI code
-'''
+###
+#  Roger C Gill, 2018-01-02
+#  Description : Reads a delimited text file
+#  Usage       : Place the following code snippets within the dashboard
+#    1 : import_file should be placed within a tabItem in a tab
+#	2 : import_file_server should be placed within the server.UI code
+###
+library(shinydashboard)
 
 # Sidebar panel for inputs
 import_file = box(
@@ -74,7 +75,7 @@ import_file_server = function(input, output) {
   output$data_contents <- renderTable({
 
     req(input$infile)
-    indata <<- read.csv(input$infile$datapath, header = input$header, sep = input$sep, quote = input$quote)
+    indata <<- import_series_data(input$infile$datapath, header = input$header, sep = input$sep, quote = input$quote)
 
     if(input$disp == "head") {
       return(head(indata))
@@ -83,4 +84,36 @@ import_file_server = function(input, output) {
 	
   })
 
+}
+
+####
+#  import_series_data : 
+#  reads data from delimited file and adds attribues
+#
+####
+
+import_series_data = function(filepath, header = TRUE, sep = ',', quote = '"'){
+
+  # at some point work out if it is monthly data.
+    
+  data = read.table(filepath, header = header, sep = sep, quote = quote)
+  nms  = names(data)
+  date_par = nms
+  if('date' %in% nms){
+    date_par = 'date'
+    nms = nms[-match('date', nms)]
+  }
+  # get the measures out
+  is_numeric = rep(0, length(nms))
+  for(i in 1:length(nms)){
+    is_numeric[i] = as.numeric(is.numeric(indata[,nms[i]]))
+  }
+  measures = nms[which(is_numeric==1)]
+  factors  = nms[-which(is_numeric==1)]
+  
+  attributes(data)$factors  = factors
+  attributes(data)$measures = measures
+  attributes(data)$date_par = date_par
+  
+  return(data)
 }

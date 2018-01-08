@@ -1,87 +1,41 @@
-'''
-  Roger C Gill, 2018-01-03
-  Description : Explores time sereies data
-  Usage       : Place the following code snippets within the dashboard
-    1 : explore_series_parameters should be placed within a tabItem in a tab
-	2 : explore_series_output should be placed within the server.UI code
-'''
+###
+#  Roger C Gill, 2018-01-03
+#  Description : Explores time sereies data
+#  Usage       : Place the following code snippets within the dashboard
+#    1 : explore_series_parameters should be placed within a tabItem in a tab
+#	   2 : explore_series_output should be placed within the server.UI code
+###
 library(plotly)
 
-# Sidebar panel for inputs
-import_file = box(
-  width = 4
-  ,status = "info"
-  # Input: Select a file
-  ,fileInput(
-    "infile"
-    ,"Choose a delimited file"
-    ,multiple = TRUE
-    ,accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")
-  )
-  # Horizontal line
-  ,tags$hr()
 
-  # Input: Checkbox if file has header ----
-  ,checkboxInput("header", "Header", TRUE)
-  
-  # Input: Select separator
-  ,radioButtons(
-    "sep"
-    ,"Separator"
-	,choices = c(Comma = ",", Semicolon = ";", Tab = "\t")
-	,selected = ","
-  )
-  
-  # Input: Select quotes
-  ,radioButtons(
-    "quote"
-	,"Quote"
-	,choices = c(None = "", "Double Quote" = '"', "Single Quote" = "'")
-	,selected = '"'
-  ),
-  
-  # Horizontal line
-  tags$hr(),
-  
-  # Input: Select number of rows to display
-  radioButtons(
-    "disp"
-	,"Display"
-	,choices = c(Head = "head", All = "all")
-	,selected = "head"
-  )
-)
 
-# Panel for displaying outputs
-show_dataframe = box(
+explore_data = box(
   width = 8
   ,status = "info"
   # Output: Data file
-  ,tableOutput("data_contents")
+  ,uiOutput("parameter_selection")
 )
 
 # This should be placed within the tabitem
-import_file_ui = tabItem(
-  "datainput"
+explore_ui = tabItem(
+  "dataexplore"
   ,fluidRow(
-    import_file
-    ,show_dataframe
+    uiOutput("parameter_selection")
   )
 )
 
-# Read the selected file
-import_file_server = function(input, output) {
-
-  output$data_contents <- renderTable({
-
-    req(input$infile)
-    indata <<- read.csv(input$infile$datapath, header = input$header, sep = input$sep, quote = input$quote)
-
-    if(input$disp == "head") {
-      return(head(indata))
-    } else { return(indata) }
-
-	
+explore_parameters_server = function(input, output) {
+  
+  output$parameter_selection = renderUI({
+    print(head(indata))
+    box(
+      width = 4
+      ,status = "info"
+      ,selectInput('x', 'Date',              choices = attributes(indata)$date_par, selected  = attributes(indata$date_par[1]))
+      ,selectInput('y', 'Measure',           choices = attributes(indata)$measures, selected  = attributes(indata)$measures[1])
+      ,selectInput('color', 'Color',         choices = attributes(indata)$factors , selected  = attributes(indata)$factors[1])
+      ,selectInput('facet_row', 'Dimension', choices = c('none', attributes(indata)$factors), selected = 'none')
+      ,checkboxInput("log_t", "Log", FALSE)
+   )
   })
-
 }

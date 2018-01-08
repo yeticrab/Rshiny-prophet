@@ -1,0 +1,5 @@
+library(shiny)
+setwd('C:\\Users\\roger.gill\\Documents\\GitHub\\Rshiny-prophet')
+source("helpers/import_delimited_file.r", local = T)
+source("helpers/explore_series_data.r", local = T)
+runApp()
